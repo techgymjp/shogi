@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>将棋ゲーム</title>
+    <title>挟み将棋</title>
     <style>
         * {
             margin: 0;
@@ -26,7 +26,7 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
+            max-width: 600px;
         }
 
         h1 {
@@ -34,6 +34,27 @@
             color: #333;
             margin-bottom: 20px;
             font-size: 2em;
+        }
+
+        .rules {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .rules h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .rules ul {
+            margin-left: 20px;
+        }
+
+        .rules li {
+            margin-bottom: 5px;
         }
 
         .game-info {
@@ -58,54 +79,10 @@
             color: #dc2626;
         }
 
-        .game-area {
+        .board-container {
             display: flex;
-            gap: 20px;
             justify-content: center;
-            align-items: center;
-        }
-
-        .captured-pieces {
-            min-width: 100px;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 10px;
-            border: 2px solid #ddd;
-        }
-
-        .captured-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .captured-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            min-height: 50px;
-        }
-
-        .captured-piece {
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 5px 8px;
-            cursor: pointer;
-            font-size: 1.2em;
-            transition: all 0.2s;
-        }
-
-        .captured-piece:hover {
-            background: #e3f2fd;
-            transform: scale(1.1);
-        }
-
-        .captured-piece.selected {
-            background: #ffc107;
-            border-color: #ff9800;
+            margin-bottom: 20px;
         }
 
         .board {
@@ -137,29 +114,44 @@
 
         .cell.selected {
             background: #ffc107;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
         }
 
         .cell.valid-move {
             background: #90ee90;
         }
 
-        .cell.valid-drop {
-            background: #87ceeb;
+        .cell.last-move {
+            background: #ffeb99;
         }
 
         .piece {
-            font-size: 1.8em;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
             font-weight: bold;
             user-select: none;
             transition: transform 0.2s;
         }
 
-        .piece.computer {
-            transform: rotate(180deg);
+        .piece.human {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .piece.promoted {
-            color: #d32f2f;
+        .piece.computer {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .piece:hover {
+            transform: scale(1.1);
         }
 
         .status {
@@ -179,6 +171,7 @@
         .status.game-over {
             background: #f8d7da;
             color: #721c24;
+            font-size: 1.3em;
         }
 
         .buttons {
@@ -208,198 +201,78 @@
             transform: translateY(-2px);
         }
 
-        .promote-dialog {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 1000;
-        }
-
-        .promote-dialog.show {
-            display: block;
-        }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-
-        .overlay.show {
-            display: block;
-        }
-
-        .promote-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .promote-btn {
-            padding: 15px 30px;
-            font-size: 1.1em;
-            background: #4caf50;
+        .toggle-rules-btn {
+            background: #667eea;
             color: white;
         }
 
-        .promote-btn:hover {
-            background: #45a049;
+        .toggle-rules-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
         }
 
-        .no-promote-btn {
-            background: #9e9e9e;
-            color: white;
-        }
-
-        .no-promote-btn:hover {
-            background: #757575;
-        }
-
-        @media (max-width: 768px) {
-            .game-area {
-                flex-direction: column;
-            }
-            
-            .board {
-                grid-template-columns: repeat(9, 40px);
-                grid-template-rows: repeat(9, 40px);
-            }
-            
-            .cell {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .piece {
-                font-size: 1.4em;
-            }
+        .rules.hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎌 将棋ゲーム 🎌</h1>
+        <h1>挟み将棋</h1>
         
+        <div class="rules" id="rules">
+            <h3>ルール</h3>
+            <ul>
+                <li>各プレイヤーは9個の駒を持ちます</li>
+                <li>駒は縦横に何マスでも移動できます（斜めは不可）</li>
+                <li>相手の駒を自分の2つの駒で挟むと取れます</li>
+                <li>相手の駒を1個だけ残すまで取ると勝ちです</li>
+            </ul>
+        </div>
+
         <div class="game-info">
             <div class="player-info player-computer">
-                💻 コンピュータ（後手）
+                <span>コンピュータ: <span id="computer-pieces">9</span>個</span>
             </div>
             <div class="player-info player-human">
-                👤 あなた（先手）
+                <span>あなた: <span id="human-pieces">9</span>個</span>
             </div>
         </div>
 
-        <div class="game-area">
-            <div class="captured-pieces">
-                <div class="captured-title">コンピュータの持ち駒</div>
-                <div class="captured-list" id="computer-captured"></div>
-            </div>
-
-            <div id="board" class="board"></div>
-
-            <div class="captured-pieces">
-                <div class="captured-title">あなたの持ち駒</div>
-                <div class="captured-list" id="human-captured"></div>
-            </div>
+        <div class="board-container">
+            <div class="board" id="board"></div>
         </div>
 
-        <div id="status" class="status">あなたの番です</div>
+        <div class="status" id="status">あなたの番です</div>
 
         <div class="buttons">
             <button class="new-game-btn" onclick="game.newGame()">新しいゲーム</button>
-        </div>
-    </div>
-
-    <div class="overlay" id="overlay"></div>
-    <div class="promote-dialog" id="promote-dialog">
-        <h2>成りますか？</h2>
-        <div class="promote-buttons">
-            <button class="promote-btn" onclick="game.confirmPromotion(true)">成る</button>
-            <button class="no-promote-btn" onclick="game.confirmPromotion(false)">成らない</button>
+            <button class="toggle-rules-btn" onclick="toggleRules()">ルールを隠す/表示</button>
         </div>
     </div>
 
     <script>
-        // 駒の定義
-        const PIECES = {
-            // 先手（人間）
-            KING: { name: '王', display: '王', canPromote: false, promoted: false },
-            ROOK: { name: '飛', display: '飛', canPromote: true, promoted: false },
-            BISHOP: { name: '角', display: '角', canPromote: true, promoted: false },
-            GOLD: { name: '金', display: '金', canPromote: false, promoted: false },
-            SILVER: { name: '銀', display: '銀', canPromote: true, promoted: false },
-            KNIGHT: { name: '桂', display: '桂', canPromote: true, promoted: false },
-            LANCE: { name: '香', display: '香', canPromote: true, promoted: false },
-            PAWN: { name: '歩', display: '歩', canPromote: true, promoted: false },
-            
-            // 成り駒
-            PROMOTED_ROOK: { name: '龍', display: '龍', canPromote: false, promoted: true, base: 'ROOK' },
-            PROMOTED_BISHOP: { name: '馬', display: '馬', canPromote: false, promoted: true, base: 'BISHOP' },
-            PROMOTED_SILVER: { name: '全', display: '全', canPromote: false, promoted: true, base: 'SILVER' },
-            PROMOTED_KNIGHT: { name: '圭', display: '圭', canPromote: false, promoted: true, base: 'KNIGHT' },
-            PROMOTED_LANCE: { name: '杏', display: '杏', canPromote: false, promoted: true, base: 'LANCE' },
-            PROMOTED_PAWN: { name: 'と', display: 'と', canPromote: false, promoted: true, base: 'PAWN' }
-        };
-
-        class ShogiGame {
+        class HasamiShogiGame {
             constructor() {
                 this.board = Array(9).fill(null).map(() => Array(9).fill(null));
-                this.currentPlayer = 'human'; // human or computer
+                this.currentPlayer = 'human';
                 this.selectedCell = null;
-                this.selectedCapturedPiece = null;
                 this.validMoves = [];
-                this.capturedPieces = {
-                    human: [],
-                    computer: []
-                };
                 this.gameOver = false;
-                this.pendingPromotion = null;
+                this.lastMove = null;
                 this.initBoard();
                 this.render();
             }
 
             initBoard() {
-                // 後手（コンピュータ）の駒配置
-                this.board[0][0] = { type: 'LANCE', player: 'computer' };
-                this.board[0][1] = { type: 'KNIGHT', player: 'computer' };
-                this.board[0][2] = { type: 'SILVER', player: 'computer' };
-                this.board[0][3] = { type: 'GOLD', player: 'computer' };
-                this.board[0][4] = { type: 'KING', player: 'computer' };
-                this.board[0][5] = { type: 'GOLD', player: 'computer' };
-                this.board[0][6] = { type: 'SILVER', player: 'computer' };
-                this.board[0][7] = { type: 'KNIGHT', player: 'computer' };
-                this.board[0][8] = { type: 'LANCE', player: 'computer' };
-                this.board[1][1] = { type: 'ROOK', player: 'computer' };
-                this.board[1][7] = { type: 'BISHOP', player: 'computer' };
-                for (let i = 0; i < 9; i++) {
-                    this.board[2][i] = { type: 'PAWN', player: 'computer' };
+                // コンピュータの駒を最上段に配置
+                for (let col = 0; col < 9; col++) {
+                    this.board[0][col] = { player: 'computer' };
                 }
 
-                // 先手（人間）の駒配置
-                this.board[8][0] = { type: 'LANCE', player: 'human' };
-                this.board[8][1] = { type: 'KNIGHT', player: 'human' };
-                this.board[8][2] = { type: 'SILVER', player: 'human' };
-                this.board[8][3] = { type: 'GOLD', player: 'human' };
-                this.board[8][4] = { type: 'KING', player: 'human' };
-                this.board[8][5] = { type: 'GOLD', player: 'human' };
-                this.board[8][6] = { type: 'SILVER', player: 'human' };
-                this.board[8][7] = { type: 'KNIGHT', player: 'human' };
-                this.board[8][8] = { type: 'LANCE', player: 'human' };
-                this.board[7][7] = { type: 'ROOK', player: 'human' };
-                this.board[7][1] = { type: 'BISHOP', player: 'human' };
-                for (let i = 0; i < 9; i++) {
-                    this.board[6][i] = { type: 'PAWN', player: 'human' };
+                // 人間の駒を最下段に配置
+                for (let col = 0; col < 9; col++) {
+                    this.board[8][col] = { player: 'human' };
                 }
             }
 
@@ -414,29 +287,31 @@
                         cell.dataset.row = row;
                         cell.dataset.col = col;
 
-                        if (this.selectedCell && this.selectedCell.row === row && this.selectedCell.col === col) {
+                        // 最後の移動を強調表示
+                        if (this.lastMove && 
+                            ((this.lastMove.fromRow === row && this.lastMove.fromCol === col) ||
+                             (this.lastMove.toRow === row && this.lastMove.toCol === col))) {
+                            cell.classList.add('last-move');
+                        }
+
+                        // 選択されたセルを強調表示
+                        if (this.selectedCell && 
+                            this.selectedCell.row === row && 
+                            this.selectedCell.col === col) {
                             cell.classList.add('selected');
                         }
 
-                        if (this.validMoves.some(m => m.row === row && m.col === col && m.type === 'move')) {
+                        // 有効な移動先を表示
+                        if (this.validMoves.some(m => m.row === row && m.col === col)) {
                             cell.classList.add('valid-move');
                         }
 
-                        if (this.validMoves.some(m => m.row === row && m.col === col && m.type === 'drop')) {
-                            cell.classList.add('valid-drop');
-                        }
-
+                        // 駒を表示
                         const piece = this.board[row][col];
                         if (piece) {
                             const pieceElement = document.createElement('div');
-                            pieceElement.className = 'piece';
-                            if (piece.player === 'computer') {
-                                pieceElement.classList.add('computer');
-                            }
-                            if (piece.promoted) {
-                                pieceElement.classList.add('promoted');
-                            }
-                            pieceElement.textContent = PIECES[piece.type].display;
+                            pieceElement.className = `piece ${piece.player}`;
+                            pieceElement.textContent = '●';
                             cell.appendChild(pieceElement);
                         }
 
@@ -445,312 +320,159 @@
                     }
                 }
 
-                this.renderCapturedPieces();
+                // 駒の数を更新
+                this.updatePieceCount();
             }
 
-            renderCapturedPieces() {
-                const humanCaptured = document.getElementById('human-captured');
-                const computerCaptured = document.getElementById('computer-captured');
+            updatePieceCount() {
+                let humanCount = 0;
+                let computerCount = 0;
 
-                humanCaptured.innerHTML = '';
-                computerCaptured.innerHTML = '';
-
-                this.capturedPieces.human.forEach((pieceType, index) => {
-                    const piece = document.createElement('div');
-                    piece.className = 'captured-piece';
-                    if (this.selectedCapturedPiece && 
-                        this.selectedCapturedPiece.player === 'human' && 
-                        this.selectedCapturedPiece.index === index) {
-                        piece.classList.add('selected');
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        const piece = this.board[row][col];
+                        if (piece) {
+                            if (piece.player === 'human') humanCount++;
+                            else computerCount++;
+                        }
                     }
-                    piece.textContent = PIECES[pieceType].display;
-                    piece.addEventListener('click', () => this.selectCapturedPiece('human', index));
-                    humanCaptured.appendChild(piece);
-                });
+                }
 
-                this.capturedPieces.computer.forEach(pieceType => {
-                    const piece = document.createElement('div');
-                    piece.className = 'captured-piece';
-                    piece.textContent = PIECES[pieceType].display;
-                    piece.style.cursor = 'default';
-                    computerCaptured.appendChild(piece);
-                });
-            }
-
-            selectCapturedPiece(player, index) {
-                if (this.gameOver || this.currentPlayer !== player) return;
-
-                this.selectedCell = null;
-                this.selectedCapturedPiece = { player, index };
-                this.validMoves = this.getDropMoves(this.capturedPieces[player][index], player);
-                this.render();
+                document.getElementById('human-pieces').textContent = humanCount;
+                document.getElementById('computer-pieces').textContent = computerCount;
             }
 
             handleCellClick(row, col) {
                 if (this.gameOver || this.currentPlayer !== 'human') return;
 
-                // 持ち駒を打つ場合
-                if (this.selectedCapturedPiece) {
-                    const validMove = this.validMoves.find(m => m.row === row && m.col === col);
-                    if (validMove) {
-                        this.dropPiece(row, col);
-                    }
-                    return;
-                }
+                const piece = this.board[row][col];
 
-                // 駒を動かす場合
-                if (this.selectedCell) {
-                    const validMove = this.validMoves.find(m => m.row === row && m.col === col);
-                    if (validMove) {
-                        this.movePiece(this.selectedCell.row, this.selectedCell.col, row, col);
-                    } else {
-                        const piece = this.board[row][col];
-                        if (piece && piece.player === 'human') {
-                            this.selectedCell = { row, col };
-                            this.selectedCapturedPiece = null;
-                            this.validMoves = this.getValidMoves(row, col);
-                            this.render();
-                        } else {
-                            this.selectedCell = null;
-                            this.selectedCapturedPiece = null;
-                            this.validMoves = [];
-                            this.render();
-                        }
-                    }
-                } else {
-                    const piece = this.board[row][col];
-                    if (piece && piece.player === 'human') {
-                        this.selectedCell = { row, col };
-                        this.selectedCapturedPiece = null;
-                        this.validMoves = this.getValidMoves(row, col);
-                        this.render();
-                    }
+                // 駒を選択
+                if (piece && piece.player === 'human') {
+                    this.selectedCell = { row, col };
+                    this.validMoves = this.getValidMoves(row, col);
+                    this.render();
+                }
+                // 移動先を選択
+                else if (this.selectedCell && this.validMoves.some(m => m.row === row && m.col === col)) {
+                    this.movePiece(this.selectedCell.row, this.selectedCell.col, row, col);
+                }
+                // 選択解除
+                else {
+                    this.selectedCell = null;
+                    this.validMoves = [];
+                    this.render();
                 }
             }
 
             getValidMoves(row, col) {
-                const piece = this.board[row][col];
-                if (!piece) return [];
-
                 const moves = [];
-                const directions = this.getPieceDirections(piece.type, piece.player);
+                const directions = [
+                    [-1, 0], // 上
+                    [1, 0],  // 下
+                    [0, -1], // 左
+                    [0, 1]   // 右
+                ];
 
-                for (const dir of directions) {
-                    let newRow = row + dir[0];
-                    let newCol = col + dir[1];
-                    let distance = 1;
+                for (const [dr, dc] of directions) {
+                    let newRow = row + dr;
+                    let newCol = col + dc;
 
+                    // その方向に進めるだけ進む
                     while (newRow >= 0 && newRow < 9 && newCol >= 0 && newCol < 9) {
-                        const targetPiece = this.board[newRow][newCol];
-
-                        if (targetPiece) {
-                            if (targetPiece.player !== piece.player) {
-                                moves.push({ row: newRow, col: newCol, type: 'move' });
-                            }
-                            break;
+                        if (this.board[newRow][newCol] === null) {
+                            moves.push({ row: newRow, col: newCol });
                         } else {
-                            moves.push({ row: newRow, col: newCol, type: 'move' });
+                            break; // 駒がある場合は止まる
                         }
-
-                        // 飛車、角、香車以外は1マスのみ
-                        if (!['ROOK', 'BISHOP', 'LANCE', 'PROMOTED_ROOK', 'PROMOTED_BISHOP'].includes(piece.type)) {
-                            break;
-                        }
-
-                        newRow += dir[0];
-                        newCol += dir[1];
-                        distance++;
+                        newRow += dr;
+                        newCol += dc;
                     }
                 }
 
                 return moves;
-            }
-
-            getPieceDirections(pieceType, player) {
-                const forward = player === 'human' ? -1 : 1;
-                const backward = player === 'human' ? 1 : -1;
-
-                const directions = {
-                    KING: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1], [backward,1], [backward,-1]],
-                    ROOK: [[forward,0], [backward,0], [0,1], [0,-1]],
-                    BISHOP: [[forward,1], [forward,-1], [backward,1], [backward,-1]],
-                    GOLD: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1]],
-                    SILVER: [[forward,0], [forward,1], [forward,-1], [backward,1], [backward,-1]],
-                    KNIGHT: [[forward*2,1], [forward*2,-1]],
-                    LANCE: [[forward,0], [forward,0], [forward,0], [forward,0], [forward,0], [forward,0], [forward,0], [forward,0]],
-                    PAWN: [[forward,0]],
-                    PROMOTED_ROOK: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1], [backward,1], [backward,-1]],
-                    PROMOTED_BISHOP: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1], [backward,1], [backward,-1]],
-                    PROMOTED_SILVER: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1]],
-                    PROMOTED_KNIGHT: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1]],
-                    PROMOTED_LANCE: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1]],
-                    PROMOTED_PAWN: [[forward,0], [backward,0], [0,1], [0,-1], [forward,1], [forward,-1]]
-                };
-
-                return directions[pieceType] || [];
-            }
-
-            getDropMoves(pieceType, player) {
-                const moves = [];
-                
-                for (let row = 0; row < 9; row++) {
-                    for (let col = 0; col < 9; col++) {
-                        if (!this.board[row][col]) {
-                            // 二歩のチェック
-                            if (pieceType === 'PAWN') {
-                                let hasPawn = false;
-                                for (let r = 0; r < 9; r++) {
-                                    const p = this.board[r][col];
-                                    if (p && p.type === 'PAWN' && p.player === player && !p.promoted) {
-                                        hasPawn = true;
-                                        break;
-                                    }
-                                }
-                                if (hasPawn) continue;
-                            }
-
-                            // 行き場のない駒のチェック
-                            if (player === 'human' && row === 0) {
-                                if (['PAWN', 'LANCE'].includes(pieceType)) continue;
-                                if (pieceType === 'KNIGHT' && row <= 1) continue;
-                            } else if (player === 'computer' && row === 8) {
-                                if (['PAWN', 'LANCE'].includes(pieceType)) continue;
-                                if (pieceType === 'KNIGHT' && row >= 7) continue;
-                            }
-
-                            moves.push({ row, col, type: 'drop' });
-                        }
-                    }
-                }
-
-                return moves;
-            }
-
-            dropPiece(row, col) {
-                const pieceType = this.capturedPieces[this.selectedCapturedPiece.player][this.selectedCapturedPiece.index];
-                this.board[row][col] = { type: pieceType, player: this.selectedCapturedPiece.player, promoted: false };
-                this.capturedPieces[this.selectedCapturedPiece.player].splice(this.selectedCapturedPiece.index, 1);
-
-                this.selectedCell = null;
-                this.selectedCapturedPiece = null;
-                this.validMoves = [];
-                
-                this.switchPlayer();
             }
 
             movePiece(fromRow, fromCol, toRow, toCol) {
                 const piece = this.board[fromRow][fromCol];
-                const capturedPiece = this.board[toRow][toCol];
-
-                if (capturedPiece) {
-                    // 成り駒は元の駒に戻す
-                    let capturedType = capturedPiece.type;
-                    if (capturedPiece.promoted) {
-                        const baseTypes = {
-                            'PROMOTED_ROOK': 'ROOK',
-                            'PROMOTED_BISHOP': 'BISHOP',
-                            'PROMOTED_SILVER': 'SILVER',
-                            'PROMOTED_KNIGHT': 'KNIGHT',
-                            'PROMOTED_LANCE': 'LANCE',
-                            'PROMOTED_PAWN': 'PAWN'
-                        };
-                        capturedType = baseTypes[capturedType];
-                    }
-                    this.capturedPieces[piece.player].push(capturedType);
-
-                    if (capturedType === 'KING') {
-                        this.gameOver = true;
-                        this.updateStatus(`${piece.player === 'human' ? 'あなた' : 'コンピュータ'}の勝ちです！`, true);
-                        this.render();
-                        return;
-                    }
-                }
-
-                // 成りの判定
-                const canPromote = PIECES[piece.type].canPromote && !piece.promoted;
-                const inPromotionZone = (piece.player === 'human' && (fromRow <= 2 || toRow <= 2)) ||
-                                       (piece.player === 'computer' && (fromRow >= 6 || toRow >= 6));
-                
-                const mustPromote = (piece.player === 'human' && toRow === 0 && ['PAWN', 'LANCE'].includes(piece.type)) ||
-                                   (piece.player === 'human' && toRow <= 1 && piece.type === 'KNIGHT') ||
-                                   (piece.player === 'computer' && toRow === 8 && ['PAWN', 'LANCE'].includes(piece.type)) ||
-                                   (piece.player === 'computer' && toRow >= 7 && piece.type === 'KNIGHT');
-
-                if (canPromote && inPromotionZone) {
-                    if (mustPromote) {
-                        this.promotePiece(piece);
-                        this.board[toRow][toCol] = piece;
-                        this.board[fromRow][fromCol] = null;
-                        this.selectedCell = null;
-                        this.validMoves = [];
-                        this.switchPlayer();
-                    } else if (piece.player === 'human') {
-                        // プレイヤーに成るか確認
-                        this.pendingPromotion = { piece, fromRow, fromCol, toRow, toCol };
-                        this.showPromotionDialog();
-                    } else {
-                        // コンピュータは自動判断
-                        if (Math.random() > 0.3) {
-                            this.promotePiece(piece);
-                        }
-                        this.board[toRow][toCol] = piece;
-                        this.board[fromRow][fromCol] = null;
-                        this.selectedCell = null;
-                        this.validMoves = [];
-                        this.switchPlayer();
-                    }
-                } else {
-                    this.board[toRow][toCol] = piece;
-                    this.board[fromRow][fromCol] = null;
-                    this.selectedCell = null;
-                    this.validMoves = [];
-                    this.switchPlayer();
-                }
-
-                this.render();
-            }
-
-            promotePiece(piece) {
-                const promotionMap = {
-                    'ROOK': 'PROMOTED_ROOK',
-                    'BISHOP': 'PROMOTED_BISHOP',
-                    'SILVER': 'PROMOTED_SILVER',
-                    'KNIGHT': 'PROMOTED_KNIGHT',
-                    'LANCE': 'PROMOTED_LANCE',
-                    'PAWN': 'PROMOTED_PAWN'
-                };
-                piece.type = promotionMap[piece.type];
-                piece.promoted = true;
-            }
-
-            showPromotionDialog() {
-                document.getElementById('overlay').classList.add('show');
-                document.getElementById('promote-dialog').classList.add('show');
-            }
-
-            hidePromotionDialog() {
-                document.getElementById('overlay').classList.remove('show');
-                document.getElementById('promote-dialog').classList.remove('show');
-            }
-
-            confirmPromotion(promote) {
-                if (!this.pendingPromotion) return;
-
-                const { piece, fromRow, fromCol, toRow, toCol } = this.pendingPromotion;
-
-                if (promote) {
-                    this.promotePiece(piece);
-                }
-
                 this.board[toRow][toCol] = piece;
                 this.board[fromRow][fromCol] = null;
+
+                this.lastMove = { fromRow, fromCol, toRow, toCol };
+
+                // 挟んだ駒を取る
+                this.checkCaptures(toRow, toCol, piece.player);
+
                 this.selectedCell = null;
                 this.validMoves = [];
-                this.pendingPromotion = null;
-
-                this.hidePromotionDialog();
                 this.render();
+
+                // 勝利判定
+                if (this.checkWin()) return;
+
                 this.switchPlayer();
+            }
+
+            checkCaptures(row, col, player) {
+                const opponent = player === 'human' ? 'computer' : 'human';
+                const directions = [
+                    [0, -1, 0, 1],   // 横方向（左と右）
+                    [-1, 0, 1, 0]    // 縦方向（上と下）
+                ];
+
+                for (const [dr1, dc1, dr2, dc2] of directions) {
+                    const capturedPieces = [];
+                    
+                    // 一方向に相手の駒を探す
+                    let checkRow = row + dr1;
+                    let checkCol = col + dc1;
+                    
+                    while (checkRow >= 0 && checkRow < 9 && checkCol >= 0 && checkCol < 9) {
+                        const checkPiece = this.board[checkRow][checkCol];
+                        
+                        if (checkPiece === null) {
+                            break; // 空きマス
+                        } else if (checkPiece.player === opponent) {
+                            capturedPieces.push({ row: checkRow, col: checkCol });
+                        } else if (checkPiece.player === player) {
+                            // 自分の駒で挟まれている場合、相手の駒を取る
+                            for (const captured of capturedPieces) {
+                                this.board[captured.row][captured.col] = null;
+                            }
+                            break;
+                        }
+                        
+                        checkRow += dr1;
+                        checkCol += dc1;
+                    }
+                }
+            }
+
+            checkWin() {
+                let humanCount = 0;
+                let computerCount = 0;
+
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        const piece = this.board[row][col];
+                        if (piece) {
+                            if (piece.player === 'human') humanCount++;
+                            else computerCount++;
+                        }
+                    }
+                }
+
+                if (humanCount === 1) {
+                    this.gameOver = true;
+                    this.updateStatus('コンピュータの勝ちです！', true);
+                    return true;
+                } else if (computerCount === 1) {
+                    this.gameOver = true;
+                    this.updateStatus('あなたの勝ちです！おめでとうございます！', true);
+                    return true;
+                }
+
+                return false;
             }
 
             switchPlayer() {
@@ -773,68 +495,80 @@
                     return;
                 }
 
-                // ランダムに手を選ぶ（簡易AI）
-                const move = allMoves[Math.floor(Math.random() * allMoves.length)];
+                // 優先順位：
+                // 1. 相手の駒を取れる手
+                // 2. ランダムな手
 
-                if (move.isDrop) {
-                    this.board[move.toRow][move.toCol] = { 
-                        type: move.pieceType, 
-                        player: 'computer',
-                        promoted: false 
-                    };
-                    const index = this.capturedPieces.computer.indexOf(move.pieceType);
-                    this.capturedPieces.computer.splice(index, 1);
-                } else {
+                let bestMove = null;
+                let maxCaptures = 0;
+
+                for (const move of allMoves) {
+                    // 仮想的に移動してみる
                     const piece = this.board[move.fromRow][move.fromCol];
-                    const capturedPiece = this.board[move.toRow][move.toCol];
-
-                    if (capturedPiece) {
-                        let capturedType = capturedPiece.type;
-                        if (capturedPiece.promoted) {
-                            const baseTypes = {
-                                'PROMOTED_ROOK': 'ROOK',
-                                'PROMOTED_BISHOP': 'BISHOP',
-                                'PROMOTED_SILVER': 'SILVER',
-                                'PROMOTED_KNIGHT': 'KNIGHT',
-                                'PROMOTED_LANCE': 'LANCE',
-                                'PROMOTED_PAWN': 'PAWN'
-                            };
-                            capturedType = baseTypes[capturedType];
-                        }
-                        this.capturedPieces.computer.push(capturedType);
-
-                        if (capturedType === 'KING') {
-                            this.gameOver = true;
-                            this.board[move.toRow][move.toCol] = piece;
-                            this.board[move.fromRow][move.fromCol] = null;
-                            this.render();
-                            this.updateStatus('コンピュータの勝ちです！', true);
-                            return;
-                        }
-                    }
-
-                    // 成りの判定
-                    const canPromote = PIECES[piece.type].canPromote && !piece.promoted;
-                    const inPromotionZone = move.fromRow >= 6 || move.toRow >= 6;
-                    const mustPromote = (move.toRow === 8 && ['PAWN', 'LANCE'].includes(piece.type)) ||
-                                       (move.toRow >= 7 && piece.type === 'KNIGHT');
-
-                    if (canPromote && inPromotionZone && (mustPromote || Math.random() > 0.3)) {
-                        this.promotePiece(piece);
-                    }
-
+                    const originalPiece = this.board[move.toRow][move.toCol];
+                    
                     this.board[move.toRow][move.toCol] = piece;
                     this.board[move.fromRow][move.fromCol] = null;
+
+                    // 何個取れるかカウント
+                    const captures = this.countCaptures(move.toRow, move.toCol, 'computer');
+
+                    // 元に戻す
+                    this.board[move.fromRow][move.fromCol] = piece;
+                    this.board[move.toRow][move.toCol] = originalPiece;
+
+                    if (captures > maxCaptures) {
+                        maxCaptures = captures;
+                        bestMove = move;
+                    }
                 }
 
-                this.render();
-                this.switchPlayer();
+                // 取れる手がなければランダムに選ぶ
+                if (!bestMove) {
+                    bestMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+                }
+
+                this.movePiece(bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol);
+            }
+
+            countCaptures(row, col, player) {
+                const opponent = player === 'human' ? 'computer' : 'human';
+                const directions = [
+                    [0, -1, 0, 1],   // 横方向
+                    [-1, 0, 1, 0]    // 縦方向
+                ];
+
+                let totalCaptures = 0;
+
+                for (const [dr1, dc1, dr2, dc2] of directions) {
+                    const capturedPieces = [];
+                    
+                    let checkRow = row + dr1;
+                    let checkCol = col + dc1;
+                    
+                    while (checkRow >= 0 && checkRow < 9 && checkCol >= 0 && checkCol < 9) {
+                        const checkPiece = this.board[checkRow][checkCol];
+                        
+                        if (checkPiece === null) {
+                            break;
+                        } else if (checkPiece.player === opponent) {
+                            capturedPieces.push({ row: checkRow, col: checkCol });
+                        } else if (checkPiece.player === player) {
+                            totalCaptures += capturedPieces.length;
+                            break;
+                        }
+                        
+                        checkRow += dr1;
+                        checkCol += dc1;
+                    }
+                }
+
+                return totalCaptures;
             }
 
             getAllPossibleMoves(player) {
                 const moves = [];
 
-                // 盤上の駒の移動
                 for (let row = 0; row < 9; row++) {
                     for (let col = 0; col < 9; col++) {
                         const piece = this.board[row][col];
@@ -845,24 +579,10 @@
                                     fromRow: row,
                                     fromCol: col,
                                     toRow: move.row,
-                                    toCol: move.col,
-                                    isDrop: false
+                                    toCol: move.col
                                 });
                             }
                         }
-                    }
-                }
-
-                // 持ち駒を打つ
-                for (const pieceType of this.capturedPieces[player]) {
-                    const dropMoves = this.getDropMoves(pieceType, player);
-                    for (const move of dropMoves) {
-                        moves.push({
-                            pieceType: pieceType,
-                            toRow: move.row,
-                            toCol: move.col,
-                            isDrop: true
-                        });
                     }
                 }
 
@@ -884,20 +604,22 @@
                 this.board = Array(9).fill(null).map(() => Array(9).fill(null));
                 this.currentPlayer = 'human';
                 this.selectedCell = null;
-                this.selectedCapturedPiece = null;
                 this.validMoves = [];
-                this.capturedPieces = { human: [], computer: [] };
                 this.gameOver = false;
-                this.pendingPromotion = null;
-                this.hidePromotionDialog();
+                this.lastMove = null;
                 this.initBoard();
                 this.render();
                 this.updateStatus('あなたの番です');
             }
         }
 
+        function toggleRules() {
+            const rules = document.getElementById('rules');
+            rules.classList.toggle('hidden');
+        }
+
         // ゲーム開始
-        const game = new ShogiGame();
+        const game = new HasamiShogiGame();
     </script>
 </body>
 </html>
